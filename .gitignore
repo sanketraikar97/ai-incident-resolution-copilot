@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# Data
+data/
+*.csv
+*.json
+*.md
+
+# Models / embeddings
+models/
+embeddings/
+faiss_index/
+
+# Logs
+logs/
+
+# OS
+.DS_Store
