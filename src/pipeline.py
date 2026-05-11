@@ -1,20 +1,35 @@
 import json
-from retrieve import retrieve, load_index
-from llm import call_llm
-from schema import IncidentResolution
+from .retrieve import (
+    load_index,
+    build_bm25_index,
+    load_all_chunks,
+    hybrid_retrieve,
+)
+from .llm import call_llm
+from .schema import IncidentResolution
+from .rerank import rerank
 
 
-def run_pipeline(query: str) -> IncidentResolution:
+def run_pipeline(query: str, use_reranker: bool = True) -> IncidentResolution:
 
     index, connector = load_index()
 
-    chunks = retrieve(query, index, connection=connector, top_k=8, top_n=5)
+    all_chunks = load_all_chunks(connector)
+
+    (bm25, bm25_chunks) = build_bm25_index(all_chunks)
+
+    # Retrieve larger candidate set when reranker is active downstream
+    # chunks = retrieve(query, index, connection=connector, top_k=10, top_n=8)
+    chunks = hybrid_retrieve(query, index, connector, bm25, bm25_chunks)
     connector.close()
     print(f"No of chunks retrieved: {len(chunks)}")
 
-    llm_json = call_llm(query, chunks)
+    if use_reranker:
+        chunks = rerank(query, chunks)
 
-    return llm_json
+    response = call_llm(query, chunks)
+
+    return response
 
 
 if __name__ == "__main__":

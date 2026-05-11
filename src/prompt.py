@@ -1,4 +1,4 @@
-from schema import Chunk
+from .schema import Chunk
 
 
 SYSTEM_PROMPT = """

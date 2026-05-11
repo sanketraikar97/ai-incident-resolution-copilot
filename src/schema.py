@@ -9,6 +9,7 @@ class Chunk(BaseModel):
     incident_id: Optional[str] = None
     chunk_type: Literal["runbook", "incident"]
     score: Optional[float] = None
+    rerank_score: Optional[float] = None
 
 
 class RecommendedAction(BaseModel):

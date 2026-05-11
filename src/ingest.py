@@ -1,5 +1,5 @@
 from openai import OpenAI
-from schema import Chunk
+from .schema import Chunk
 import json
 import glob
 import os
@@ -7,6 +7,7 @@ import sqlite3
 import numpy as np
 import faiss
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
 
 
 load_dotenv()
@@ -14,6 +15,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "data/faiss.index")
 METADATA_DB_PATH = os.getenv("METADATA_DB_PATH", "data/metadata.db")
+_embed_model = None
 
 
 def load_inc_json(filepath: str) -> dict:
@@ -34,9 +36,14 @@ def load_runbook_md(filepath: str) -> str:
 
 def get_embeddings(text: str) -> list[float]:
 
+    global _embed_model
+    if _embed_model is None:
+        _embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
     try:
-        embeddings = client.embeddings.create(model=EMBEDDING_MODEL, input=text)
-        return list(embeddings.data[0].embedding)
+        # embeddings = client.embeddings.create(model=EMBEDDING_MODEL, input=text)
+        # return list(embeddings.data[0].embedding)
+        return _embed_model.encode(text).tolist()
     except Exception as e:
         print(f"Embedding has Failed: {e}")
         raise
@@ -54,6 +61,7 @@ def load_incidents(path: str = "data/incidents") -> list[Chunk]:
         description = data.get("description")
         symptoms = "\n".join(data.get("symptoms"))
         root_cause = data.get("root_cause")
+
         resolution = data.get("resolution")
         tags = data.get("tags")
 

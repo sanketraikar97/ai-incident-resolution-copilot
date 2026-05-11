@@ -3,8 +3,8 @@ import json
 from openai import OpenAI
 from dotenv import load_dotenv
 from pydantic import ValidationError
-from schema import IncidentResolution
-from prompt import SYSTEM_PROMPT, build_user_message
+from .schema import IncidentResolution
+from .prompt import SYSTEM_PROMPT, build_user_message
 
 
 load_dotenv()
