@@ -6,13 +6,12 @@ from pydantic import ValidationError
 from .schema import IncidentResolution
 from .prompt import SYSTEM_PROMPT, build_user_message
 
-
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o")
 
 
-def call_llm(query: str, chunks: list) -> IncidentResolution:
+def call_llm(query: str, chunks: list) -> tuple[IncidentResolution, str]:
 
     user_message = build_user_message(query, chunks)
 
@@ -41,4 +40,4 @@ def call_llm(query: str, chunks: list) -> IncidentResolution:
         )
         raise
 
-    return parsed
+    return parsed, LLM_MODEL
