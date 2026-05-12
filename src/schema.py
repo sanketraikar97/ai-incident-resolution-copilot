@@ -32,3 +32,34 @@ class IncidentResolution(BaseModel):
     confidence: str
     confidence_reason: str
     sources: List[str]
+
+
+# --- Response Wrapper Model ---
+class CopilotResponse(BaseModel):
+    # field: query
+    """why: it stores the user input query and is important to display the user input"""
+    query: str
+
+    # field: latency_ms
+    """ why float and not int: perf_counter returns float value and converting to integer format looses sub ms accuracy """
+    latency_ms: float
+
+    # field: request_id
+    """ why: A unique id for each request raised towards this system and acts as an identifier """
+    request_id: str
+
+    # field: cache_state
+    """ why Literal and not str: Because we want to provide only 2 options i.e either a hit or a miss """
+    cache_state: Literal["HIT", "MISS"]
+
+    # field: model_used
+    """ why Optional: In case of cache Hit we never call a model so i refer to it as optional field for now """
+    model_used: Optional[str]
+
+    # field: resolution
+    """ why Optional: It is optional because in case we get a cache miss and the internal validations of run_pipeline fail and we dont get any response it is to avoid any kind of dumps """
+    resolution: Optional[IncidentResolution]
+
+    # field: reranker_used
+    """ why: The model has the flexibility to either run the reranker or use FAISS similarity for outputs """
+    reranker_used: bool
