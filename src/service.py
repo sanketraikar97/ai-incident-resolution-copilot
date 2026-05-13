@@ -109,6 +109,7 @@ def run_with_cache(query: str, use_reranker: bool, redis_client) -> CopilotRespo
         System time will impact time.time leading to incorrect values """
 
     start = time.perf_counter()
+    chunks = []
 
     # step 5: wrap everything in try/except for redis failure
     """ what exception does redis raise on connection failure: redis.exceptions.RedisError
@@ -146,7 +147,7 @@ def run_with_cache(query: str, use_reranker: bool, redis_client) -> CopilotRespo
     # step 4b: CACHE MISS path
     # - where does model_used come from on a miss: It comes from the environment variable stored in .env file
     else:
-        response, model_name = run_pipeline(query, use_reranker)
+        response, model_name, latency, chunks = run_pipeline(query, use_reranker)
         try:
             cache_response(
                 redis_client=redis_client,
@@ -164,12 +165,15 @@ def run_with_cache(query: str, use_reranker: bool, redis_client) -> CopilotRespo
             cache_state="MISS",
             query=query,
             latency_ms=latency_ms,
+            retrieval_ms=latency["retrieval_ms"],
+            rerank_ms=latency["rerank_ms"],
+            llm_ms=latency["llm_ms"],
             request_id=request_id,
             model_used=model_name,
             resolution=response,
             reranker_used=use_reranker,
         )
 
-    log_request(result)
+    log_request(result, chunks)
 
     return result

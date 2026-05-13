@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
-from .schema import CopilotResponse
+from .schema import CopilotResponse, Chunk
 
 # --- Module-level setup ---
 # called once at import time, never again
@@ -33,7 +33,7 @@ LOG_FILE_PATH = setup_log_file()
 
 
 # --- Request Logger ---
-def log_request(copilot_response: CopilotResponse) -> None:
+def log_request(copilot_response: CopilotResponse, chunks: list[Chunk]) -> None:
 
     # step 1: build the log entry dict
     # every key with its source — include the None guard for resolution fields
@@ -45,6 +45,9 @@ def log_request(copilot_response: CopilotResponse) -> None:
     log_data["request_id"] = copilot_response.request_id
     log_data["user_query"] = copilot_response.query
     log_data["latency_in_ms"] = copilot_response.latency_ms
+    log_data["retrieval_latency_in_ms"] = copilot_response.retrieval_ms
+    log_data["rerank_latency_in_ms"] = copilot_response.rerank_ms
+    log_data["llm_latency_in_ms"] = copilot_response.llm_ms
     log_data["cache_state"] = copilot_response.cache_state
     log_data["model_used"] = copilot_response.model_used
     log_data["reranker_used"] = copilot_response.reranker_used
@@ -57,6 +60,12 @@ def log_request(copilot_response: CopilotResponse) -> None:
         if response
         else None
     )
+    log_data["chunks"] = [
+        chunk.model_dump(
+            include={"source", "incident_id", "chunk_type", "score", "rerank_score"}
+        )
+        for chunk in chunks
+    ]
 
     # step 2: open log file in append mode and write one JSON line
     """ why append mode: because append mode adds new data to the existing records in the file instead of overwriting it """

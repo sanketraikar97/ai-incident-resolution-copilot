@@ -43,6 +43,9 @@ class CopilotResponse(BaseModel):
     # field: latency_ms
     """ why float and not int: perf_counter returns float value and converting to integer format looses sub ms accuracy """
     latency_ms: float
+    retrieval_ms: Optional[float] = None
+    rerank_ms: Optional[float] = None
+    llm_ms: Optional[float] = None
 
     # field: request_id
     """ why: A unique id for each request raised towards this system and acts as an identifier """
