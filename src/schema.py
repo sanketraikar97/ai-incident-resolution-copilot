@@ -66,3 +66,16 @@ class CopilotResponse(BaseModel):
     # field: reranker_used
     """ why: The model has the flexibility to either run the reranker or use FAISS similarity for outputs """
     reranker_used: bool
+
+
+# --- Result model ---
+# Define a Pydantic model for the result of one faithfulness check
+# Q: what fields does it need?
+# Q: which fields are lists (multiple violations possible) vs single values?
+# Q: should it have a boolean "passed" field, or can you derive that from the violations list?
+class FaithfulnessResult(BaseModel):
+
+    query: str
+    fabricated_sources: list[str]
+    fabricated_incidents: list[str]
+    was_evaluated: bool
